@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- Inherit payment_provider_form view -->
+        <record id="view_payment_provider_form_inherit" model="ir.ui.view">
+            <field name="name">payment.provider.form.inherit.fees</field>
+            <field name="model">payment.provider</field>
+            <field name="inherit_id" ref="payment.payment_provider_form"/>
+            <field name="arch" type="xml">
+                <!-- Add Fees tab with Python-controlled visibility -->
+                <xpath expr="//notebook" position="inside">
+                    <page string="Fees" name="fees" invisible="name != 'Stripe'">
+                        <group name="payment_fees">
+                            <field name="fees_active"/>
+                            <field name="fees_dom_fixed" invisible="fees_active == False"/>
+                            <field name="fees_dom_var" invisible="fees_active == False"/>
+                            <field name="fees_int_fixed" invisible="fees_active == False"/>
+                            <field name="fees_int_var" invisible="fees_active == False"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

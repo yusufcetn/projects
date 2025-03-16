@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- Root Menu -->
+        <menuitem id="menu_root"
+            name="Education"
+            sequence="10"
+            />
+
+
+        <!-- Menu Item -->
+
+        <menuitem id="menu_partner"
+            parent="menu_root"
+            name="Partner"
+            action="action_partner"
+            sequence="1" />
+
+        <menuitem id="menu_subpartner"
+            parent="menu_root"
+            name="Sub Partner"
+            action="action_subpartner"
+            sequence="2" />
+        
+        <menuitem id="menu_school"
+            parent="menu_root"
+            name="School"
+            action="action_school"
+            sequence="3" />
+
+        <menuitem id="menu_teacher"
+            parent="menu_root"
+            name="Teacher"
+            action="action_teacher"
+            sequence="4" />
+
+        <menuitem id="menu_student"
+            parent="menu_root"
+            name="Student"
+            action="action_student"
+            sequence="5" />
+
+        <menuitem id="menu_parent"
+            parent="menu_root"
+            name="Parent"
+            action="action_parent"
+            sequence="6" />
+
+        <menuitem id="menu_lead"
+            parent="menu_root"
+            name="Assignment"
+            action="action_assignment"
+            sequence="7"/>
+
+        <menuitem id="menu_category"
+            parent="menu_root"
+            name="Age Category"
+            action="action_category"
+            sequence="8"/>
+
+    </data>
+</odoo>

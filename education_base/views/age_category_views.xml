@@ -1,0 +1,13 @@
+<odoo>
+    <record id="view_age_category_tree" model="ir.ui.view">
+        <field name="name">age.category.tree</field>
+        <field name="model">age.category</field>
+        <field name="arch" type="xml">
+            <tree string="Age Categories" editable="bottom">
+                <field name="name"/>
+                <field name="min_date"/>
+                <field name="max_date"/>
+            </tree>
+        </field>
+    </record>
+</odoo>

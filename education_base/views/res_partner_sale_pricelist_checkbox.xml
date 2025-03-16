@@ -1,0 +1,17 @@
+<odoo>
+    <data>
+        <record id="view_partner_form_pricelist_inherit" model="ir.ui.view">
+            <field name="name">res.partner.form.pricelist.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//field[@name='property_product_pricelist']" position="replace">
+                    <field name="special_pricelist_id"/>
+                    <field name="property_product_pricelist" readonly="special_pricelist_id != True"/>
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_age_category,age.category.age.category,education_base.model_age_category,base.group_system,1,1,1,1

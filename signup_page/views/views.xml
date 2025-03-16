@@ -1,0 +1,755 @@
+<odoo>
+    <template id="auth_signup_inherit" inherit_id="auth_signup.fields">
+
+        <xpath expr="//div[hasclass('mb-3', 'field-login')]" position="before">
+            <div class="form-group field-partner_type" id="partner_type_field">
+                <div class="partner-type-options">
+                    <label>
+                        <div class="radio-icon-wrapper">
+                            <input type="radio" name="partner_type" value="student" required="True"/>
+                            <span class="option-icon student-icon">👨‍🎓</span>
+                        </div>
+                        <span>Student</span>
+                    </label>
+                    <label>
+                        <div class="radio-icon-wrapper">
+                            <input type="radio" name="partner_type" value="teacher" required="True"/>
+                            <span class="option-icon teacher-icon">👨‍🏫</span>
+                        </div>
+                        <span>Teacher</span>
+                    </label>
+                    <label>
+                        <div class="radio-icon-wrapper">
+                            <input type="radio" name="partner_type" value="parent" required="True"/>
+                            <span class="option-icon parent-icon">👨‍👩‍👧</span>
+                        </div>
+                        <span>Parent</span>
+                    </label>
+                </div>
+            </div>
+
+        </xpath>
+
+        <xpath expr="//div[contains(@class, 'field-name')]/label" position="replace">
+            <label for="name">Name</label>
+        </xpath>
+
+        <xpath expr="//div[contains(@class, 'field-name')]/input" position="attributes">
+            <attribute name="placeholder">First &amp; Middle Name</attribute>
+        </xpath>
+
+        <xpath expr="//div[hasclass('mb-3', 'field-name')]" position="after">
+
+            <div class="form-group field-last_name" style="display: none;">
+                <label for="last_name">Surname</label>
+                <input type="text" name="last_name" id="last_name" class="form-control form-control-sm"
+                       placeholder="Last Name" required="required"/>
+            </div>
+
+            <div class="form-group" id="country_div" style="display: none;">
+                <label for="country_id">Country</label>
+                <select name="country_id" id="country_id" class="form-control" onchange="updateCountryCode()" required="required">
+                    <option value="">Select a country</option>
+                    <t t-foreach="request.env['res.country'].sudo().search([])" t-as="country">
+                        <option t-att-value="country.id" t-att-data-phone-code="country.phone_code" t-esc="country.name"/>
+                    </t>
+                </select>
+            </div>
+
+            <div class="form-group" id="school_div">
+                <label id="school_search_label" for="school_search">Search School</label>
+                <input type="text" id="school_search" class="form-control" placeholder="Type to search"
+                       oninput="fetchSchools()" autocomplete="off"/>
+                <div id="school_error_message" class="tooltip-error">Please select a valid school from the list!</div>
+                <input type="hidden" id="hidden_school_id" name="hidden_school_id"/>
+                <ul id="school_list" class="list-group"
+                    style="display: none; position: absolute; z-index: 1000; width: 100% !important; overflow: hidden;"/>
+            </div>
+
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"/>
+
+                <script>
+                    function fetchSchools() {
+                        var countryId = $('#country_id').val();
+                        var searchSchool = $('#school_search').val();
+                        var schoolList = $('#school_list');
+
+                        schoolList.empty();
+
+                        if (countryId) {
+                            $.ajax({
+                                url: '/get_schools',
+                                method: 'POST',
+                                contentType: 'application/json',
+                                dataType: 'json',
+                                data: JSON.stringify({
+                                    params: {
+                                        country_id: countryId,
+                                        school_search: searchSchool
+                                    }
+                                }),
+                                success: function(response) {
+                                    var schools = response.result.result;
+
+                                    if (Array.isArray(schools) &amp;&amp; schools.length > 0) {
+                                        schoolList.show();
+                                        schools.forEach(function(school) {
+                                            var listItem = $('&lt;li class="list-group-item">');
+                                            listItem.text(school.name);
+                                            listItem.attr('data-id', school.id);
+                                            schoolList.append(listItem);
+                                        });
+                                    } else {
+                                        if (!schoolList.children().filter(function() {
+                                            return $(this).text().toLowerCase() === 'other';
+                                        }).length) {
+                                            var otherListItem = $('&lt;li class="list-group-item">');
+                                            otherListItem.text('Other');
+                                            otherListItem.attr('data-id', 0);
+                                            schoolList.append(otherListItem);
+                                        }
+                                    }
+
+                                    schoolList.show();
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('AJAX Error:', status, error);
+                                    alert('Failed to retrieve schools.');
+                                }
+                            });
+                        } else {
+                            schoolList.hide();
+                        }
+                    }
+
+                    $(document).click(function(e) {
+                        if (!$(e.target).closest('#school_div').length) {
+                            $('#school_list').hide();
+                        }
+                    });
+
+                    function toggleVisibilityRequired(field, isVisible) {
+                        if (isVisible) {
+                            $(field).show();
+                            $(field).find('input, select').attr('required', 'required');
+                        } else {
+                            $(field).hide();
+                            $(field).find('input, select').removeAttr('required');
+                        }
+                    }
+                </script>
+
+            <div class="form-group" id="other_school_div" style="display: none;">
+                <label for="other_school">School Name</label>
+                <input type="text" name="other_school" id="other_school" class="form-control"
+                       placeholder="School Name"/>
+            </div>
+
+            <div class="form-group" id="teacher_div" style="display: none;">
+                <label for="teacher_id">Teacher</label>
+                <select name="teacher_id" id="teacher_id" class="form-control">
+                    <option value="">Select a teacher</option>
+                </select>
+            </div>
+
+                <script>
+                    function getTeachers() {
+                        var schoolId = document.getElementById('hidden_school_id').value;
+                        var teacherDropdown = document.getElementById('teacher_id');
+
+                        teacherDropdown.innerHTML = '&lt;option value="">Select a teacher';
+
+                        if (schoolId) {
+                            $.ajax({
+                                url: '/get_teachers',
+                                method: 'POST',
+                                contentType: 'application/json',
+                                dataType: 'json',
+                                data: JSON.stringify({ params: { hidden_school_id: schoolId } }),
+                                success: function(response) {
+
+                                    var teachers = response.result.result;
+
+                                    if (Array.isArray(teachers)) {
+                                        teachers.forEach(function(teacher) {
+                                            var option = document.createElement('option');
+                                            option.value = teacher.id;
+                                            option.textContent = teacher.name;
+                                            teacherDropdown.appendChild(option);
+                                        });
+
+                                        var otherOption = document.createElement('option');
+                                        otherOption.value = "0";
+                                        otherOption.textContent = "Other";
+                                        teacherDropdown.appendChild(otherOption);
+
+                                    } else {
+                                        console.error('Beklenmeyen veri formatı:', response);
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('AJAX Error:', status, error);
+                                    alert('Failed to retrieve teachers.');
+                                }
+                            });
+                        }
+                    }
+                </script>
+
+            <div class="form-group" id="teacher_number_div" style="display: none;">
+                <label for="phone">Teacher Phone</label>
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <select id="country_code" class="form-control country-select">
+                            <option value="">Code</option>
+                            <t t-foreach="request.env['res.country'].sudo().search([], order='phone_code asc')" t-as="country">
+                                <option t-att-value="country.phone_code"
+                                        t-att-data-placeholder="'+' + str(country.phone_code) + ' *** *** ****'">
+                                    +<t t-esc="country.phone_code"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+                    <input type="text" name="phone" id="phone" class="form-control" placeholder="*** *** ****"
+                           required="required"/>
+                </div>
+            </div>
+
+            <style>
+                .country-select {
+                    width: auto;
+                    padding-left: 10px;
+                    margin-right: 10px;
+                }
+            </style>
+
+
+            <div class="form-group field-birth_date" style="display: none;">
+                <label for="birth_date">Birth Date</label>
+                <input type="date" name="birth_date" id="birth_date" class="form-control"
+                       placeholder="e.g. 1990-01-01" required="required"/>
+            </div>
+
+            <div class="form-group field-gender" style="display: none;">
+                <label for="user_gender">Gender</label>
+                <select name="user_gender" id="user_gender" class="form-control" required="required">
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
+
+            <!--            <div id="parent_fields" style="display: none;">-->
+
+            <!--                <div class="separator" id="partner_seperator" style="display: none">-->
+            <!--                    <hr/>-->
+            <!--                </div>-->
+
+            <!--                <h4 style="margin-top: 20px;">Student Information</h4>-->
+
+            <!--                <div class="form-group">-->
+            <!--                    <label for="student_name">Student First &amp; Middle Name</label>-->
+            <!--                    <input type="text" name="student_name" id="student_name" class="form-control" placeholder="e.g. Michael"/>-->
+            <!--                </div>-->
+
+            <!--                <div class="form-group">-->
+            <!--                    <label for="student_surname">Student Last Name</label>-->
+            <!--                    <input type="text" name="student_surname" id="student_surname" class="form-control" placeholder="e.g. Brown"/>-->
+            <!--                </div>-->
+
+            <!--                <div class="form-group">-->
+            <!--                    <label for="student_mail">Student Email</label>-->
+            <!--                    <input type="text" name="student_mail" id="student_mail" class="form-control" placeholder="example@example.com"/>-->
+            <!--                </div>-->
+
+            <!--                <div class="form-group">-->
+            <!--                    <label for="student_gender">Student Gender</label>-->
+            <!--                    <select name="student_gender" id="student_gender" class="form-control">-->
+            <!--                        <option value="">Select Gender</option>-->
+            <!--                        <option value="male">Male</option>-->
+            <!--                        <option value="female">Female</option>-->
+            <!--                    </select>-->
+            <!--                </div>-->
+
+            <!--                <div class="form-group">-->
+            <!--                    <label for="student_dob">Date Of Birth</label>-->
+            <!--                    <input type="date" name="student_dob" id="student_dob" class="form-control"/>-->
+            <!--                </div>-->
+            <!--            </div>-->
+
+
+            <xpath expr="//head" position="inside">
+                <style>
+                    .form-group.field-partner_type {
+                        text-align: center;
+                    }
+
+                    .form-group.field-partner_type #partner_type {
+                        display: block;
+                        margin: 0 auto;
+                    }
+
+                    .partner-type-options {
+                        display: flex;
+                        justify-content: space-around;
+                        margin-top: 10px;
+                        margin-bottom: 20px;
+                    }
+
+                    .partner-type-options label {
+                        cursor: pointer;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        gap: 5px;
+                        transition: transform 0.3s ease, opacity 0.3s ease;
+                    }
+
+                    .partner-type-options .radio-icon-wrapper {
+                        display: flex;
+                        flex-direction: row;
+                        align-items: center;
+                        gap: 10px;
+                    }
+
+                    .partner-type-options input[type="radio"] {
+                        transform: scale(1.2);
+                        margin-right: 5px;
+                    }
+
+                    .option-icon {
+                        font-size: 24px;
+                        transition: transform 0.3s ease, opacity 0.3s ease;
+                    }
+
+                    .partner-type-options input[type="radio"]:checked + .option-icon {
+                        transform: scale(1.5);
+                        opacity: 1;
+                    }
+
+                    .partner-type-options input[type="radio"]:not(:checked) + .option-icon {
+                        opacity: 0.6;
+                        transform: scale(0.8);
+                    }
+
+                    .partner-type-options label:hover .option-icon {
+                        transform: scale(1.2);
+                    }
+
+                    .partner-type-options input[type="radio"]:checked + .option-icon + span {
+                        font-weight: bold;
+                        font-size: 1.2em;
+                    }
+
+                    .partner-type-options input[type="radio"]:not(:checked) + .option-icon + span {
+                        opacity: 0.6;
+                    }
+
+                    .separator hr {
+                        border: 0;
+                        height: 1px;
+                        background: #ccc;
+                        margin: 20px 0;
+                    }
+
+                    .field-login,
+                    .field-name,
+                    .field-last_name,
+                    .field-password,
+                    .field-confirm_password,
+                    .btn-primary,
+                    #school_div{
+                        display: none;
+                    }
+
+                     #school_list {
+                        max-height: 200px;
+                        overflow-y: auto;
+                        background-color: #ffffff;
+                        border: 1px solid #ccc;
+                        border-radius: 4px;
+                        width: 100%;
+                        box-sizing: border-box;
+                        margin-top: 2px;
+                        padding-left: 0;
+                        list-style-type: none;
+                        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+                        position: absolute;
+                        z-index: 1000;
+                        left: 0;
+                    }
+
+                    .list-group-item {
+                        cursor: pointer;
+                        padding: 10px 15px;
+                        font-size: 14px;
+                        color: #333;
+                        border-bottom: 1px solid #eee;
+                        background-color: #f9f9f9;
+                        transition: background-color 0.2s ease;
+                        width: 100%;
+                        box-sizing: border-box;
+                    }
+
+                    .list-group-item:hover {
+                        background-color: #e0e0e0;
+                    }
+
+                    .list-group-item:last-child {
+                        border-bottom: none;
+                    }
+
+                    .tooltip-error {
+                        position: absolute;
+                        background-color: #c27193;
+                        color: #ffffff;
+                        padding: 20px 15px;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        box-shadow: 0 4px 8px rgba(194,113,147,255);
+                        z-index: 1000;
+                        margin-top: -5px;
+                        display: none;
+                        transition: opacity 0.3s ease, transform 0.3s ease;
+                        opacity: 0;
+                        transform: translateY(-10px);
+                    }
+
+                    .tooltip-error.show {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+
+                    .tooltip-error::before {
+                        content: "";
+                        position: absolute;
+                        top: -5px;
+                        left: 20px;
+                        border-width: 5px;
+                        border-style: solid;
+                        border-color: transparent transparent #c27193 transparent;
+                    }
+
+                </style>
+
+            </xpath>
+
+            <xpath expr="//div[contains(@class, 'field-password')]" position="before">
+                <div class="separator">
+                    <hr/>
+                </div>
+            </xpath>
+
+            <xpath expr="//form[hasclass('oe_signup_form')]" position="inside">
+                <script type="text/javascript">
+
+                    function updateCountryCode() {
+                        var countrySelect = document.getElementById('country_id');
+                        var selectedCountry = countrySelect.options[countrySelect.selectedIndex];
+                        var phoneCodeSelect = document.getElementById('country_code');
+
+                        var selectedCountryPhoneCode = selectedCountry.getAttribute('data-phone-code');
+
+                        if (selectedCountryPhoneCode) {
+                            for (var i = 0; i &lt; phoneCodeSelect.options.length; i++) {
+                                if (phoneCodeSelect.options[i].value === selectedCountryPhoneCode) {
+                                    phoneCodeSelect.selectedIndex = i;
+                                    break;
+                                }
+                            }
+                        } else {
+                            phoneCodeSelect.selectedIndex = 0;
+                        }
+                    }
+
+                    function resetInputs(){
+                        const nameField = document.querySelector('input[name="name"]');
+                        const lastNameField = document.querySelector('input[name="last_name"]');
+                        const emailField = document.querySelector('input[name="login"]');
+
+                        if (nameField) {
+                            nameField.value = '';
+                        }
+                        if (lastNameField) {
+                            lastNameField.value = '';
+                        }
+                        if (emailField) {
+                            emailField.value = '';
+                        }
+                    }
+
+                    document.addEventListener('DOMContentLoaded', function() {
+                        var path = window.location.pathname;
+                        if (path.includes('signup') &amp;&amp; !window.location.search.includes('token')){
+                            const form = document.querySelector('form');
+
+                            if (form) {
+                                form.reset();
+                            }
+
+                            resetInputs();
+
+                            const fieldsToHide = ['.field-login', '.field-name', '.field-last_name', '.field-password',
+                                                  '.field-birth_date', '.field-gender', '.field-confirm_password',
+                                                  '.btn-primary', '#country_div', '#school_div', '#teacher_div',
+                                                  '#other_school_div', '#teacher_number_div'];
+
+                            function hideAllFields() {
+                                fieldsToHide.forEach(function(fieldSelector) {
+                                    const field = document.querySelector(fieldSelector);
+                                    if (field) {
+                                        field.style.display = 'none';
+                                    }
+                                });
+                            }
+
+                            const teacherRadio = document.querySelector('.partner-type-options input[value="teacher"]');
+                            if (teacherRadio &amp;&amp; teacherRadio.checked) {
+                                updateCountryCode();
+                            }
+
+                            const radioButtons = document.querySelectorAll('.partner-type-options input[type="radio"]');
+                            const countrySelect = document.getElementById('country_id');
+                            const schoolInput = document.getElementById('school_search');
+                            const otherSchoolInput = document.getElementById('other_school');
+                            const teacherDiv = document.getElementById('teacher_div');
+                            const teacherInput = document.getElementById('teacher_id');
+                            const otherSchoolDiv = document.getElementById('other_school_div');
+                            const schoolList = document.getElementById('school_list');
+                            const schoolLabel = document.getElementById('school_search_label');
+
+                            // Update school label based on selected radio button
+                            function updateSchoolLabel() {
+                                const selectedRadio = document.querySelector('.partner-type-options input[type="radio"]:checked');
+                                if (selectedRadio &amp;&amp; selectedRadio.value === 'parent') {
+                                    schoolLabel.textContent = "Your Child's School";
+                                } else {
+                                    schoolLabel.textContent = "Search School";
+                                }
+                            }
+
+                            radioButtons.forEach(function(radio) {
+                                radio.checked = false;
+                            });
+
+                            const fieldsToShow = ['.field-login', '.field-name', '.field-last_name', '.field-password',
+                                                  '.field-birth_date', '.field-gender', '.field-confirm_password',
+                                                  '#country_div'];
+
+                            function showSelectedFields() {
+                                fieldsToShow.forEach(function(fieldSelector) {
+                                    const field = document.querySelector(fieldSelector);
+                                    if (field) {
+                                        field.style.display = 'block';
+                                    }
+                                });
+
+                                const selectedRadio = document.querySelector('.partner-type-options input[type="radio"]:checked');
+
+                                if (selectedRadio &amp;&amp; (selectedRadio.value === 'teacher' || selectedRadio.value === 'student' || selectedRadio.value === 'parent')) {
+                                    $('.btn-primary').show();
+                                }
+
+                                const teacherNumberDiv = document.getElementById('teacher_number_div');
+
+                                if (selectedRadio &amp;&amp; selectedRadio.value === 'teacher') {
+                                    if (teacherNumberDiv) {
+                                        toggleVisibilityRequired(teacherNumberDiv, true);
+                                    }
+                                } else {
+                                    toggleVisibilityRequired(teacherNumberDiv, false);
+                                }
+                            }
+
+                            hideAllFields();
+
+                            radioButtons.forEach(function(radio) {
+                                radio.addEventListener('change', function() {
+                                    updateSchoolLabel();
+                                    hideAllFields();
+
+                                    if (countrySelect) {
+                                        countrySelect.selectedIndex = 0;
+                                        const schoolDiv = document.getElementById('school_div');
+
+                                        if (schoolDiv) {
+                                            schoolInput.value = '';
+                                            otherSchoolInput.value = '';
+                                            schoolDiv.style.display = 'none';
+                                        }
+
+                                        if (teacherInput) {
+                                            teacherInput.selectedIndex = 0;
+                                        }
+
+                                        if (teacherDiv) {
+                                            teacherDiv.style.display = 'none';
+                                        }
+
+                                        if (otherSchoolDiv) {
+                                            otherSchoolDiv.style.display = 'none';
+                                        }
+                                    }
+
+                                    resetInputs();
+
+                                    if (this.value === 'student' || this.value === 'teacher' || this.value === 'parent') {
+                                        showSelectedFields();
+                                    }
+
+                                    if (this.value === 'teacher') {
+                                            updateCountryCode();
+                                    } else {
+                                        document.getElementById('country_code').selectedIndex = 0;
+                                    }
+
+                                    if(this.value === 'parent'){
+                                        toggleVisibilityRequired(otherSchoolInput, true);
+                                        toggleVisibilityRequired(otherSchoolDiv, true);
+                                    }
+                                });
+                            });
+
+                            if (countrySelect) {
+                                countrySelect.addEventListener('change', function() {
+                                    const schoolDiv = document.getElementById('school_div');
+                                    const selectedRadio = document.querySelector('.partner-type-options input[type="radio"]:checked');
+
+                                    if (schoolDiv) {
+                                        schoolInput.value = '';
+                                        schoolDiv.style.display = 'none';
+                                    }
+                                    if (otherSchoolDiv) {
+                                        otherSchoolInput.value = '';
+                                        otherSchoolDiv.style.display = 'none';
+                                    }
+                                    if (teacherDiv) {
+                                        teacherInput.selectedIndex = 0;
+                                        teacherDiv.style.display = 'none';
+                                    }
+
+                                    // Modified this part to show school div for parent
+                                    if (countrySelect.value) {
+                                        toggleVisibilityRequired(schoolDiv, true);
+                                    } else if (countrySelect.value &amp;&amp; selectedRadio &amp;&amp; selectedRadio.value === 'parent') {
+                                        toggleVisibilityRequired(otherSchoolDiv, true);
+                                        toggleVisibilityRequired(otherSchoolInput, true);
+                                    } else {
+                                        schoolInput.value = '';
+                                        toggleVisibilityRequired(schoolDiv, false);
+                                        teacherInput.selectedIndex = 0;
+                                        toggleVisibilityRequired(teacherDiv, false);
+                                    }
+                                });
+                            }
+
+                            if (schoolInput) {
+                                $(document).on('click', '#school_list .list-group-item', function() {
+                                    const selectedRadio = document.querySelector('.partner-type-options input[type="radio"]:checked');
+                                    const selectedItem = $(this).text();
+                                    const selectedId = $(this).attr('data-id');
+
+                                    $('#school_search').val(selectedItem);
+                                    $('#hidden_school_id').val(selectedId);
+                                    $('#school_list').hide();
+
+                                    if (selectedRadio &amp;&amp; selectedRadio.value === 'student' &amp;&amp; selectedItem.trim() !== '') {
+                                        if (teacherDiv) {
+                                            toggleVisibilityRequired(teacherDiv, true);
+                                        }
+                                    }else{
+                                        toggleVisibilityRequired(teacherDiv, false);
+                                    }
+                                    if (selectedItem.toLowerCase() === 'other' &amp;&amp; selectedRadio.value !== 'parent') {
+                                        toggleVisibilityRequired($('#other_school_div'), true);
+                                        toggleVisibilityRequired($('#teacher_div'), false);
+                                    } else {
+                                        toggleVisibilityRequired($('#other_school_div'), false);
+                                        if (selectedRadio &amp;&amp; selectedRadio.value === 'teacher') {
+                                            toggleVisibilityRequired($('#teacher_div'), false);
+                                        } else if (selectedRadio &amp;&amp; selectedRadio.value === 'student') {
+                                            toggleVisibilityRequired($('#teacher_div'), true);
+                                            getTeachers();
+                                        }
+                                    }
+                                });
+                                const hiddenSchoolInput = $('#hidden_school_id');
+
+                                schoolInput.addEventListener('input', function() {
+                                    const selectedRadio = document.querySelector('.partner-type-options input[type="radio"]:checked');
+
+                                    if (schoolInput.value.trim() === '' || !Array.from(schoolList.children).some(function(item) {
+                                        return item.innerText.trim() === schoolInput.value.trim();
+                                    })) {
+                                        if (teacherDiv) {
+                                            toggleVisibilityRequired($('#teacher_div'), false);
+                                            teacherInput.selectedIndex = 0;
+                                        }
+                                        if (otherSchoolDiv) {
+                                            toggleVisibilityRequired($('#other_school_div'), false);
+                                            otherSchoolInput.value = '';
+                                            hiddenSchoolInput.val('');
+                                        }
+                                    }
+                                });
+
+
+                                const signupButton = $('button[type="submit"]');
+
+                                signupButton.on('click', function (event) {
+                                    const selectedRadio = document.querySelector('.partner-type-options input[type="radio"]:checked');
+                                    const schoolErrorMessage = $('#school_error_message');
+
+                                    schoolErrorMessage.hide();
+                                    schoolErrorMessage.addClass('show')
+
+                                    if (hiddenSchoolInput.val() === '' &amp;&amp; selectedRadio.value !== 'parent' &amp;&amp; countrySelect.selectedIndex != 0) {
+
+                                        event.preventDefault();
+
+                                        const inputField = $('#school_search');
+                                        const inputPosition = inputField.position();
+                                        const inputHeight = inputField.outerHeight();
+
+                                        schoolErrorMessage.css({
+                                            top: inputPosition.top + inputHeight + 5 + 'px',
+                                            left: inputPosition.left + 'px',
+                                            position: 'absolute'
+                                        }).show();
+
+                                        inputField.focus();
+
+                                        setTimeout(function () {
+                                            schoolErrorMessage.fadeOut('slow');
+                                        }, 1500);
+                                    }
+                                });
+                            }
+                        }else{
+                            $('.partner-type-options').hide();
+
+                            const fieldsToShowInElse = ['.field-login', '.field-name', '.field-password',
+                                                        '.field-confirm_password', '.btn-primary'];
+
+                            fieldsToShowInElse.forEach(function(fieldSelector) {
+                                $(fieldSelector).show();
+                            });
+
+                            const fieldsToRemoveRequired = ['input[name="partner_type"]', '#last_name', '#country_id', '#phone',
+                                                            '#birth_date', '#user_gender'];
+
+                            fieldsToRemoveRequired.forEach(function(fieldSelector) {
+                                $(fieldSelector).removeAttr('required');
+                            });
+                        }
+                    });
+                </script>
+
+
+            </xpath>
+
+        </xpath>
+
+    </template>
+
+</odoo>

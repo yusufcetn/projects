@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<odoo>
+    <data>
+        <record id="action_partner" model="ir.actions.act_window">
+            <field name="name">Partner Contacts</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[('partner_type', '=', 'partner')]</field>
+        </record>
+
+        <record id="action_subpartner" model="ir.actions.act_window">
+            <field name="name">Sub Partner Contacts</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[('partner_type', '=', 'subpartner')]</field>
+        </record>
+
+        <record id="action_school" model="ir.actions.act_window">
+            <field name="name">School Contacts</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[('partner_type', '=', 'school')]</field>
+        </record>
+
+        <record id="action_teacher" model="ir.actions.act_window">
+            <field name="name">Teacher Contacts</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[('partner_type', '=', 'teacher')]</field>
+        </record>
+
+        <record id="action_student" model="ir.actions.act_window">
+            <field name="name">Student Contacts</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[('partner_type', '=', 'student')]</field>
+        </record>
+
+        <record id="action_parent" model="ir.actions.act_window">
+            <field name="name">Parent Contacts</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[('partner_type', '=', 'parent')]</field>
+        </record>
+
+        <record id="action_assignment" model="ir.actions.act_window">
+            <field name="name">Assignment</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[('is_assign', '=', True)]</field>
+        </record>
+
+        <record id="action_category" model="ir.actions.act_window">
+            <field name="name">Age Category</field>
+            <field name="res_model">age.category</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+    </data>    
+</odoo>

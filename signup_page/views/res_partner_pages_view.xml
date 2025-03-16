@@ -1,0 +1,63 @@
+<odoo>
+    <record id="view_partner_form_inherit_tabs" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit.tabs</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+
+                <page string="Subpartners" invisible="partner_type != 'partner'">
+                    <group>
+                        <field name="view_selection" widget="radio" options="{'horizontal': true}"/>
+                    </group>
+                    <group>
+                        <field name="related_subpartner_ids" mode="kanban"
+                               invisible="view_selection == 'tree'"/>
+                        <field name="related_subpartner_ids" widget="one2many_search" mode="tree"
+                               invisible="view_selection == 'kanban'"/>
+                    </group>
+                </page>
+
+                <page string="Schools" invisible="partner_type not in ['partner', 'subpartner']">
+                    <group>
+                        <field name="view_selection" widget="radio" options="{'horizontal': true}"/>
+                    </group>
+                    <group>
+                        <field name="related_school_ids" mode="kanban"
+                               invisible="view_selection == 'tree'"/>
+                        <field name="related_school_ids" widget="one2many_search" mode="tree"
+                               invisible="view_selection == 'kanban'"/>
+                    </group>
+                </page>
+
+                <page string="Teachers" invisible="partner_type not in ['partner', 'subpartner', 'school']">
+                    <group>
+                        <field name="view_selection" widget="radio" options="{'horizontal': true}"/>
+                    </group>
+                    <group>
+                        <field name="related_teacher_ids" mode="kanban"
+                               invisible="view_selection == 'tree'"/>
+                        <field name="related_teacher_ids" widget="one2many_search" mode="tree"
+                               invisible="view_selection == 'kanban'"/>
+                    </group>
+                </page>
+
+                <page string="Students"
+                      invisible="partner_type not in ['partner', 'subpartner', 'school', 'teacher', 'parent']">
+                    <group>
+                        <field name="view_selection" widget="radio" options="{'horizontal': true}"/>
+                    </group>
+                    <group>
+                        <field name="related_student_ids" mode="kanban"
+                               invisible="view_selection == 'tree'"/>
+                        <field name="related_student_ids" widget="one2many_search" mode="tree"
+                               invisible="view_selection == 'kanban'"/>
+                    </group>
+                </page>
+
+            </xpath>
+        </field>
+    </record>
+
+
+</odoo>

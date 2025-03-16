@@ -1,0 +1,680 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <template id="portal_my_home_subpartners" name="Show Contacts" inherit_id="portal.portal_my_home" priority="1000">
+        <xpath expr="//div[@id = 'portal_client_category']" position="before">
+            <div t-if="portal_category_enable" class="o_portal_category row g-2 mt-3"
+                 id="portal_category_2"/>
+            <div t-if="portal_category_enable" class="o_portal_category row g-2 mt-3"
+                 id="portal_category"/>
+        </xpath>
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-set="portal_category_enable" t-value="True"/>
+            <t t-set="portal_category_enable_2" t-value="True"/>
+        </xpath>
+        <div id="portal_category" position="inside">
+            <t t-if="request.env.user.partner_id.partner_type in ['partner']">
+                <t t-call="portal.portal_docs_entry">
+                    <t t-set="icon" t-value="'/sale/static/src/img/bag.svg'"/>
+                    <t t-set="title">Subpartners</t>
+                    <t t-set="url" t-value="'/my/subpartners'"/>
+                    <t t-set="text">View your subpartners</t>
+                    <t t-set="placeholder_count" t-value="'contact_count'"/>
+                    <t t-set="config_card" t-value="True"/>
+                </t>
+            </t>
+        </div>
+
+        <div id="portal_category" position="inside">
+            <t t-if="request.env.user.partner_id.partner_type in ['partner', 'subpartner']">
+                <t t-call="portal.portal_docs_entry">
+                    <t t-set="icon" t-value="'/sale/static/src/img/bag.svg'"/>
+                    <t t-set="title">Schools</t>
+                    <t t-set="url" t-value="'/my/schools'"/>
+                    <t t-set="text">View your schools</t>
+                    <t t-set="placeholder_count" t-value="'contact_count'"/>
+                    <t t-set="config_card" t-value="True"/>
+                </t>
+            </t>
+        </div>
+
+
+        <div id="portal_category" position="inside">
+            <t t-if="request.env.user.partner_id.partner_type in ['partner', 'subpartner', 'school']">
+                <t t-call="portal.portal_docs_entry">
+                    <t t-set="icon" t-value="'/sale/static/src/img/bag.svg'"/>
+                    <t t-set="title">Teachers</t>
+                    <t t-set="url" t-value="'/my/teachers'"/>
+                    <t t-set="text">View your teachers</t>
+                    <t t-set="placeholder_count" t-value="'contact_count'"/>
+                    <t t-set="config_card" t-value="True"/>
+                </t>
+            </t>
+        </div>
+
+        <div id="portal_category" position="inside">
+            <t t-if="request.env.user.partner_id.partner_type in ['partner', 'subpartner', 'school', 'teacher']">
+                <t t-call="portal.portal_docs_entry">
+                    <t t-set="icon" t-value="'/sale/static/src/img/bag.svg'"/>
+                    <t t-set="title">Parents</t>
+                    <t t-set="url" t-value="'/my/parents'"/>
+                    <t t-set="text">View your parents</t>
+                    <t t-set="placeholder_count" t-value="'contact_count'"/>
+                    <t t-set="config_card" t-value="True"/>
+                </t>
+            </t>
+        </div>
+
+        <div id="portal_category" position="inside">
+            <!-- Students sayfası herkes tarafından görüntülenebilir -->
+            <t t-if="request.env.user.partner_id.partner_type not in ['student', False]">
+                <t t-call="portal.portal_docs_entry">
+                    <t t-set="icon" t-value="'/sale/static/src/img/bag.svg'"/>
+                    <t t-set="title">Students</t>
+                    <t t-set="url" t-value="'/my/students'"/>
+                    <t t-set="text">View your students</t>
+                    <t t-set="placeholder_count" t-value="'contact_count'"/>
+                    <t t-set="config_card" t-value="True"/>
+                </t>
+            </t>
+        </div>
+
+        <div id="portal_category_2" position="inside">
+            <t t-if="request.env.user.partner_id.partner_type == 'student'">
+                <div class="list-group my-3">
+                    <h4 class="mb-3">My Courses</h4>
+                    <t t-set="channel_partners" t-value="request.env['slide.channel.partner'].sudo().search([
+                        ('partner_id', '=', request.env.user.partner_id.id),
+                        ('active', '=', True)
+                    ])"/>
+                    <t t-foreach="channel_partners.mapped('channel_id')" t-as="course">
+                        <t t-set="completion" t-value="round(channel_partners.filtered(lambda p: p.channel_id.id == course.id)[0].completion, 1)"/>
+                        <a t-att-href="'/slides/%s' % course.id" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1" t-esc="course.name"/>
+                                <small class="text-muted" t-esc="course.channel_type"/>
+                            </div>
+                            <span class="badge bg-primary rounded-pill"
+                                  t-esc="str(completion) + '%'"
+                                  t-att-title="str(completion) + '% completed'"/>
+                        </a>
+                    </t>
+                </div>
+            </t>
+        </div>
+    </template>
+
+
+    <!--    <template id="portal_layout" name="Portal layout: contacts menu entry" inherit_id="portal.portal_breadcrumbs"-->
+    <!--              priority="10">-->
+    <!--        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">-->
+    <!--            <li t-if="page_name == 'contact' or contact"-->
+    <!--                t-attf-class="breadcrumb-item #{'active' if not contact else ''}">-->
+    <!--                <a t-if="contact" t-attf-href="/my/contacts?{{ keep_query() }}">Contacts</a>-->
+    <!--                <t t-else="">Contacts</t>-->
+    <!--            </li>-->
+    <!--            <li t-if="contact and page_name != 'add_contact' or add_contact"-->
+    <!--                class="breadcrumb-item active text-truncate col-8 col-lg-10">-->
+    <!--                <t t-esc="contact.name"/>-->
+    <!--            </li>-->
+    <!--            <li t-if="page_name == 'add_contact' or add_contact" t-attf-class="breadcrumb-item active">-->
+    <!--                <t>New Contact</t>-->
+    <!--            </li>-->
+    <!--        </xpath>-->
+    <!--    </template>-->
+
+
+    <template id="portal_my_contacts" name="My Contacts">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Contacts</t>
+            </t>
+            <t t-if="not contacts">
+                <div class="alert alert-warning mt8" role="alert">
+                    There are no contacts.
+                </div>
+            </t>
+
+                    <!-- portal_my_contacts template içindeki mevcut import butonu bölümünü güncelleyelim -->
+            <t t-if="request.env.user.partner_id.partner_type == 'partner' and not page_name == 'parent'">
+                <div class="btn-group">
+                    <a t-att-href="'/my/' + page_name + 's/import'" class="btn btn-secondary">
+                        <i class="fa fa-upload"></i>
+                        <span>
+                            <t t-esc="'Import ' + page_name.capitalize() + 's'"/>
+                        </span>
+                    </a>
+                    <a t-att-href="'/my/' + page_name + 's/export'" class="btn btn-secondary">
+                        <i class="fa fa-download"></i>
+                        <span>
+                            <t t-esc="'Export ' + page_name.capitalize() + 's'"/>
+                        </span>
+                    </a>
+                </div>
+            </t>
+
+            <div style="text-align: right;" class="c_total mr-2 mb-1 text-muted">
+                <a t-att-href="'/my/' + page_name + 's/new'" class="btn btn-primary btn-wide">
+                    <div class="fa fa-plus"/>
+                    <span>
+                        <t t-esc="'Add new ' + page_name"></t>
+                    </span>
+                </a>
+                <t t-if="total_contacts &gt; -1">
+                    Total:
+                    <span class="text-muted" t-esc="total_contacts"/>
+                </t>
+            </div>
+            <t t-if="contacts" t-call="portal.portal_table">
+                <thead>
+                    <tr class="active">
+                        <t t-if="page_name == 'student'">
+                            <th>
+                                <input type="checkbox" id="select_all"/>
+                            </th>
+                        </t>
+                        <th>Id</th>
+                        <th>Full Name</th>
+                        <th class="text-right">Phone</th>
+                        <th class="text-right">Email</th>
+                        <!-- Yeni eklenen th'lar -->
+                        <th class="text-right">Country</th>
+                        <th class="text-right">Gender</th>
+                        <th class="text-right">Birth Date</th>
+                        <th class="text-right">Passport Number</th>
+                        <th class="text-right">Nationality</th>
+                        <t t-if="page_name == 'student'">
+                            <th class="text-right">Age Category</th>
+                            <th class="text-right">Teacher Name</th>
+                            <th class="text-right">Teacher Email</th>
+                            <th class="text-right">Teacher Phone</th>
+                            <th class="text-right">Parent Name</th>
+                            <th class="text-right">Parent Email</th>
+                            <th class="text-right">Parent Phone</th>
+                            <th class="text-right">Events Attended</th>
+                            <th class="text-right">Enrolled Courses</th>
+                        </t>
+                        <t t-if="page_name == 'student' or page_name == 'teacher'">
+                            <th class="text-right">School Name</th>
+                        </t>
+                        <t t-if="page_name == 'parent'">
+                            <th class="text-right">Child's Teacher</th>
+                        </t>
+                        <t t-if="page_name in ['student','teacher','parent'] and request.env.user.partner_id.partner_type == 'partner'">
+                            <th class="text-right">Signup Url</th>
+                        </t>
+                    </tr>
+                </thead>
+                <t t-foreach="contacts" t-as="contact">
+                    <tr>
+                        <t t-if="page_name == 'student'">
+                            <td>
+                                <input type="checkbox" class="contact-checkbox" t-att-data-contact-id="contact.id"/>
+                            </td>
+                        </t>
+                        <td>
+                            <span t-field="contact.student_number"/>
+                        </td>
+                        <td>
+                            <a t-attf-href="/my/contacts/#{contact.id}?{{ keep_query() }}">
+                                <span t-field="contact.full_name"/>
+                            </a>
+                        </td>
+                        <td class="text-right">
+                            <a t-attf-href="tel://#{contact.phone}">
+                                <span t-field="contact.phone"/>
+                            </a>
+                        </td>
+                        <td class="text-right">
+                            <a t-attf-href="mailto://#{contact.email}">
+                                <span t-field="contact.email"/>
+                            </a>
+                        </td>
+                        <td class="text-right">
+                            <span t-field="contact.country_id.name"/>
+                        </td>
+                        <td class="text-right">
+                            <span t-field="contact.user_gender"/>
+                        </td>
+                        <td class="text-right">
+                            <span t-field="contact.birth_date"/>
+                        </td>
+                        <td class="text-right">
+                            <span t-field="contact.passport_number"/>
+                        </td>
+                        <td class="text-right">
+                            <span t-field="contact.nationality"/>
+                        </td>
+                        <t t-if="page_name == 'student'">
+                            <td class="text-right">
+                                <span t-field="contact.age_category"/>
+                            </td>
+                            <td class="text-right">
+                                <span t-field="contact.teacher_id.full_name"/>
+                            </td>
+                            <td class="text-right">
+                                <a t-attf-href="mailto://#{contact.teacher_id.email}">
+                                    <span t-field="contact.teacher_id.email"/>
+                                </a>
+                            </td>
+                            <td class="text-right">
+                                <a t-attf-href="tel://#{contact.teacher_id.phone}">
+                                    <span t-field="contact.teacher_id.phone"/>
+                                </a>
+                            </td>
+                            <td class="text-right">
+                                <span t-field="contact.student_parent_id.full_name"/>
+                            </td>
+                            <td class="text-right">
+                                <a t-attf-href="mailto://#{contact.student_parent_id.email}">
+                                    <span t-field="contact.student_parent_id.email"/>
+                                </a>
+                            </td>
+                            <td class="text-right">
+                                <a t-attf-href="tel://#{contact.student_parent_id.phone}">
+                                    <span t-field="contact.student_parent_id.phone"/>
+                                </a>
+                            </td>
+                            <td class="text-left" style="max-width: 250px">
+                                <t t-if="attendee_events.get(contact.id)">
+                                    <div class="d-flex flex-column align-items-start">
+                                        <t t-foreach="attendee_events[contact.id]" t-as="event">
+                                            <span class="mb-1" style="white-space: normal; word-wrap: break-word; width: auto; max-width: 100%; padding: 5px; font-size: 0.75rem;" t-att-title="event.name">
+                                                <t t-esc="event.name"/>
+                                            </span>
+                                        </t>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <span class="text-muted">No events</span>
+                                </t>
+                            </td>
+                            <td class="text-left" style="max-width: 250px">
+                                <t t-if="enrolled_courses.get(contact.id)">
+                                    <div class="d-flex flex-column align-items-start">
+                                        <t t-foreach="enrolled_courses[contact.id]" t-as="course">
+                                            <span class="mb-1" style="white-space: normal; word-wrap: break-word; width: auto; max-width: 100%; padding: 5px; font-size: 0.75rem;" t-att-title="course.name">
+                                                <t t-esc="course.name"/>
+                                            </span>
+                                        </t>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <span class="text-muted">No courses</span>
+                                </t>
+                            </td>
+                        </t>
+                        <t t-if="page_name == 'student' or page_name == 'teacher'">
+                            <td class="text-right">
+                                <span t-field="contact.school_id.name"/>
+                            </td>
+                        </t>
+                        <t t-if="page_name == 'parent'">
+                            <td class="text-right">
+                                <span t-field="contact.student_id.teacher_id.full_name"/>
+                            </td>
+                        </t>
+                        <t t-if="page_name in ['student','teacher','parent'] and request.env.user.partner_id.partner_type == 'partner'">
+                            <td class="text-right">
+                                <t t-if="contact.signup_url">
+                                    <a t-attf-href="#{contact.signup_url}">Sign Up</a>
+                                    <span style="cursor: pointer; margin-left: 8px;"
+                                          t-att-data-url="contact.signup_url"
+                                          class="copy-signup-url"
+                                          title="Copy">
+                                        <i class="fa fa-copy"></i>
+                                    </span>
+                                </t>
+                                <t t-else="">
+                                    <span>N/A</span>
+                                </t>
+                            </td>
+                        </t>
+                    </tr>
+                </t>
+                <div class="tooltip">Copied!</div>
+                <style>
+                    /* Tooltip stil ayarları */
+                    .tooltip {
+                        position: fixed; /* Sabit konum için 'fixed' kullan */
+                        background-color: #4a90e2; /* Modern bir mavi ton */
+                        color: #fff; /* Yazı rengi beyaz */
+                        padding: 10px 15px; /* Daha fazla padding ekleyerek boyutu artır */
+                        border-radius: 8px; /* Daha yuvarlak köşeler için */
+                        z-index: 1000;
+                        white-space: nowrap;
+                        opacity: 0.9; /* Daha opak */
+                        transition: opacity 0.3s;
+                        font-size: 14px; /* Yazı boyutunu büyüt */
+                        display: none; /* Başlangıçta gizli */
+                        bottom: 20px; /* Alt kısımdan 20px yukarıda */
+                        right: 20px; /* Sağ kısımdan 20px içeride */
+                        pointer-events: none; /* Tıklanabilirliği kaldır */
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Modern bir gölge efekti */
+                        font-family: 'Arial', sans-serif; /* Modern bir yazı tipi */
+                    }
+                </style>
+                <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const copyIcons = document.querySelectorAll('.copy-signup-url');
+                        const tooltip = document.querySelector('.tooltip'); // Tooltip'i sayfadan al
+
+                        copyIcons.forEach(icon => {
+                            icon.addEventListener('click', function() {
+                                const url = this.getAttribute('data-url'); // URL'yi al
+                                if (url) {
+                                    navigator.clipboard.writeText(url) // Kopyala
+                                        .then(() => {
+                                            if (tooltip) {
+                                                tooltip.style.display = 'block'; // Göster
+                                                // Tooltip'i sağ alt köşeye ayarlamak için:
+                                                tooltip.style.bottom = '20px'; // Alt kısımdan 20px yukarıda
+                                                tooltip.style.right = '20px'; // Sağ kısımdan 20px içeride
+
+                                                // 2 saniye sonra tooltip'i gizle
+                                                setTimeout(() => {
+                                                    tooltip.style.display = 'none';
+                                                }, 2000);
+                                            } else {
+                                                console.error('Tooltip bulunamadı.'); // Tooltip yoksa hata mesajı
+                                            }
+                                        })
+                                        .catch(err => {
+                                            console.error('Kopyalama başarısız oldu: ', err);
+                                        });
+                                } else {
+                                    console.error('Kopyalanacak URL bulunamadı.'); // URL yoksa hata mesajı
+                                }
+                            });
+                        });
+
+                        document.getElementById('select_all').addEventListener('change', function() {
+                            const isChecked = this.checked;
+                            document.querySelectorAll('.contact-checkbox').forEach(checkbox => {
+                                checkbox.checked = isChecked;
+                            });
+                        });
+
+                        document.getElementById('enroll-button').addEventListener('click', function () {
+                            const selectedContacts = Array.from(document.querySelectorAll('.contact-checkbox:checked'))
+                                .map(cb => cb.getAttribute('data-contact-id'));
+                            const selectedCourse = document.getElementById('course-selection').value;
+
+                            if (selectedContacts.length === 0) {
+                                alert('Please select at least one contact.');
+                                return;
+                            }
+
+                            if (!selectedCourse) {
+                                alert('Please select a course.');
+                                return;
+                            }
+
+                            $.ajax({
+                                url: '/enroll_to_course',
+                                type: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({
+                                    params: {
+                                        contact_ids: selectedContacts,
+                                        course_id: selectedCourse,
+                                    }
+                                }),
+                                success: function(data) {
+                                    if (data.result.success) {
+                                        if (data.result.message) {
+                                            alert(data.result.message);
+                                        } else {
+                                            alert('Contacts successfully enrolled to course.');
+                                        }
+                                        window.location.reload();
+                                    } else {
+                                        console.log(data);
+                                        alert(data.result.error);
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('AJAX Error:', error);
+                                    alert('Failed to enroll contacts.');
+                                }
+                            });
+                        });
+                    });
+                </script>
+            </t>
+        </t>
+    </template>
+
+    <template id="portal_my_details_fields_inherit" inherit_id="portal.portal_my_details_fields">
+        <xpath expr="//input[@name='name']" position="attributes">
+            <attribute name="readonly">readonly</attribute>
+        </xpath>
+        <xpath expr="//input[@name='email']" position="attributes">
+            <attribute name="readonly">readonly</attribute>
+        </xpath>
+        <xpath expr="//div[@class='clearfix']" position="before">
+            <t t-if="request.env.user.partner_id.partner_type == 'student'">
+                <div t-attf-class="mb-3 #{error.get('birth_date') and 'o_has_error' or ''} col-xl-6">
+                    <label class="col-form-label" for="birth_date">Birth Date</label>
+                    <input type="date" name="birth_date"
+                           t-attf-class="form-control #{error.get('birth_date') and 'is-invalid' or ''}"
+                           t-att-value="partner.birth_date"/>
+                </div>
+            </t>
+            <t t-if="not request.env.user.partner_id.is_company">
+                <div t-attf-class="mb-3 #{error.get('user_gender') and 'o_has_error' or ''} col-xl-6">
+                    <label class="col-form-label" for="user_gender">Gender</label>
+                    <select name="user_gender"
+                            t-attf-class="form-select #{error.get('user_gender') and 'is-invalid' or ''}"
+                            t-att-disabled="None if partner_can_edit_vat else '1'">
+                        <option value="" t-att-selected="request.env.user.partner_id.user_gender == False">Gender...
+                        </option>
+                        <option value="male" t-att-selected="request.env.user.partner_id.user_gender == 'male'">Male
+                        </option>
+                        <option value="female" t-att-selected="request.env.user.partner_id.user_gender == 'female'">
+                            Female
+                        </option>
+                    </select>
+                </div>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="portal_import_contact_form" name="Portal Import Contacts">
+        <t t-call="portal.portal_layout">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body">
+                                <h3 class="text-center mb-4">
+                                    Import
+                                    <t t-esc="page_name.capitalize()"/>
+                                    Records
+                                </h3>
+
+                                <p class="text-center mb-4">
+                                    To import records, please select an Excel (.xlsx) file that follows the structure
+                                    below.
+                                    <br/>
+                                    You can download a sample template
+                                    <t t-if="page_name == 'subpartner'">
+                                        <a href="/portal_contacts/static/templates/subpartner-template.xlsx"
+                                           class="text-primary">here</a>.
+                                    </t>
+                                    <t t-if="page_name == 'school'">
+                                        <a href="/portal_contacts/static/templates/school-template.xlsx"
+                                           class="text-primary">
+                                            here</a>.
+                                    </t>
+                                    <t t-if="page_name == 'teacher'">
+                                        <a href="/portal_contacts/static/templates/teacher-template.xlsx"
+                                           class="text-primary">
+                                            here</a>.
+                                    </t>
+                                    <t t-if="page_name == 'student'">
+                                        <a href="/portal_contacts/static/templates/student-template.xlsx"
+                                           class="text-primary">
+                                            here</a>.
+                                    </t>
+                                </p>
+
+                                <form t-att-action="'/my/' + page_name + 's/import'" method="post"
+                                      enctype="multipart/form-data">
+                                    <!-- CSRF Token -->
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                                    <div class="form-group mb-4">
+                                        <label for="fileUpload" class="form-label">Select Excel File (.xlsx)</label>
+                                        <input type="file" name="file" id="fileUpload" class="form-control"
+                                               required="required"/>
+                                    </div>
+
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="fa fa-upload"></i>
+                                            Import
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_my_contact" name="My Contact">
+        <t t-call="portal.portal_layout">
+            <t t-if="page_name != 'add_contact' or add_contact">
+                <t t-set="o_portal_fullwidth_alert" groups="base.group_user">
+                    <t t-call="portal.portal_back_in_edit_mode">
+                        <t t-set="backend_url"
+                           t-value="'/web#model=res.partner&amp;id=%s&amp;view_type=form' % (contact.id)"/>
+                    </t>
+                </t>
+            </t>
+            <t t-call="portal.portal_record_layout">
+                <t t-set="card_header">
+                    <h5 class="mb-0">
+                        <t t-if="contact.id">
+                            <b>Edit Contact</b>
+                        </t>
+                        <t t-if="not contact.id">
+                            <b>Add Contact</b>
+                        </t>
+                        <span t-field="contact.name" class="text-truncate ml16"/>
+                    </h5>
+                </t>
+                <t t-set="card_body">
+                    <form id="portal_contact"
+                          t-attf-action="/my/contacts/{{'{}/update'.format(contact.id) if contact.id else 'create'}}"
+                          method="post"
+                          enctype="multipart/form-data"
+                          class="container form-horizontal">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <input type="hidden" name="partner_type" t-att-value="partner_type"/>
+                        <t t-foreach="fields" t-as="field_name">
+                            <!-- <t t-call="website_portal_contact.form_field"/> -->
+                            <t t-set="field_description"
+                               t-value="contact._fields[field_name].get_description(request.env)"/>
+                            <div class="form-group">
+                                <label t-att-for="field_name" class="col-sm-3">
+                                    <t t-esc="field_description['string']"/>
+                                </label>
+                                <div class="col-sm-9">
+                                    <t t-if="field_name == 'teacher_id'">
+                                        <input type="text" class="form-control" t-att-value="teacher_name" readonly="readonly"/>
+                                        <input type="text" class="form-control" t-att-value="teacher_email" readonly="readonly"/>
+                                        <input type="text" class="form-control" t-att-value="teacher_phone" readonly="readonly"/>
+                                    </t>
+                                    <t t-elif="field_name == 'student_parent_id'">
+                                        <input type="text" class="form-control" t-att-value="parent_name" readonly="readonly"/>
+                                        <input type="text" class="form-control" t-att-value="parent_email" readonly="readonly"/>
+                                        <input type="text" class="form-control" t-att-value="parent_phone" readonly="readonly"/>
+                                    </t>
+                                    <t t-elif="field_name == 'school_id'">
+                                        <input type="text" class="form-control" t-att-value="school_name" readonly="readonly"/>
+                                    </t>
+                                    <t t-elif="field_name == 'country_id'">
+                                        <select class="form-control" name="country_id">
+                                            <option value="">Select Country</option>
+                                            <t t-foreach="request.env['res.country'].search([])" t-as="country">
+                                                <option t-att-value="country.id" t-att-selected="contact.country_id.id == country.id">
+                                                    <t t-esc="country.name" />
+                                                </option>
+                                            </t>
+                                        </select>
+                                    </t>
+                                    <t t-elif="field_name == 'age_category'">
+                                        <input type="text" class="form-control" t-att-value="age_category" readonly="readonly"/>
+                                    </t>
+                                    <t t-elif="field_name == 'user_gender'">
+                                        <select class="form-control" name="user_gender" t-att-value="contact.user_gender">
+                                            <option value="" t-att-selected="not contact.user_gender">Select Gender</option>
+                                            <option value="male" t-att-selected="contact.user_gender == 'male'">Male</option>
+                                            <option value="female" t-att-selected="contact.user_gender == 'female'">Female</option>
+                                        </select>
+                                    </t>
+                                    <t t-elif="field_name == 'student_id'">
+                                        <t t-if="contact.student_id">
+                                            <div class="form-group">
+                                                <input type="text" class="form-control" t-att-value="contact.student_id.full_name" readonly="readonly"/>
+                                            </div>
+                                        </t>
+                                        <div class="form-group">
+                                            <label>Student's Teacher</label>
+                                            <input type="text" class="form-control" t-att-value="student_teacher_name" readonly="readonly"/>
+                                            <input type="text" class="form-control" t-att-value="student_teacher_phone" readonly="readonly"/>
+                                            <input type="text" class="form-control" t-att-value="student_teacher_email" readonly="readonly"/>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Student's School</label>
+                                            <input type="text" class="form-control" t-att-value="student_school_name" readonly="readonly"/>
+                                        </div>
+                                    </t>
+                                    <t t-elif="field_name == 'student_number' or field_name == 'age_category'">
+                                        <input type="text" class="form-control" t-att-value="contact[field_name]" readonly="readonly"/>
+                                    </t>
+                                    <t t-else="">
+                                        <input
+                                            t-att-id="field_name"
+                                            t-att-name="field_name"
+                                            t-att-type="'email' if field_name == 'email' else ('tel' if field_name in ('phone', 'mobile') else ('date' if field_name == 'birth_date' else 'text'))"                                            t-att-required="contact._fields[field_name].required if field_name in contact._fields else False"
+                                            t-att-value="contact[field_name]"
+                                            class="form-control"
+                                            />
+                                    </t>
+                                </div>
+                            </div>
+                        </t>
+                        <section class="row o_submit">
+                            <div class="col-md-12 text-center">
+                                <button type="submit" class="btn btn-primary" title="Save">Save</button>
+                            </div>
+                        </section>
+                    </form>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="portal_side_content_inherit" inherit_id="portal.side_content" name="Add Contact Fields to Side Content">
+        <xpath expr="//a[@href='/my/account']" position="before">
+            <div class="d-flex flex-column gap-2 mt-3" t-if="request.env.user.partner_id.partner_type == 'student'">
+                <div class="d-flex align-items-center">
+                    <span class="text-muted me-2">Age Category:</span>
+                    <span t-esc="request.env.user.partner_id.age_category.name"/>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="text-muted me-2">Teacher:</span>
+                    <span t-esc="request.env.user.partner_id.teacher_id.full_name"/>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

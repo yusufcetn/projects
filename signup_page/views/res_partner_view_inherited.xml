@@ -1,0 +1,64 @@
+<odoo>
+    <record id="view_partner_form_inherit" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="priority">12</field>
+        <field name="arch" type="xml">
+
+            <xpath expr="//h1" position="replace">
+                <h1>
+                    <field id="company" options="{'line_breaks': False}" widget="text" class="text-break" name="name"
+                           default_focus="1" placeholder="e.g. Lumber Inc" invisible="not is_company"
+                           required="type == 'contact'"/>
+
+                    <field name="full_name" string="Full Name" readonly="1" invisible="is_company == True"/>
+                </h1>
+            </xpath>
+
+            <xpath expr="//span[@name='address_name']" position="before">
+                <field id="individual" options="{'line_breaks': False}" widget="text" class="text-break" name="name"
+                       placeholder="e.g. Brandom" string="First &amp; Middle Name" required="1" invisible="is_company == True"/>
+                <field name="last_name" string="Last Name" placeholder="e.g. Freeman" required="1"
+                       invisible="is_company == True"/>
+            </xpath>
+
+            <xpath expr="//div[@class='o_address_format']" position="after">
+                <field name="country_group_id" invisible="partner_type != 'partner'"/>
+                <field name="short_code" invisible="partner_type != 'partner'"/>
+                <field name="educator_partner_code" invisible="partner_type != 'partner'"/>
+            </xpath>
+            <xpath expr="//field[@name='vat']" position="after">
+                <field name="student_number" invisible="partner_type == False"/>
+                <field name="passport_number" invisible="partner_type == 'school'"/>
+                <field name="identity_vat_number" invisible="partner_type == False"/>
+                <field name="nationality" invisible="partner_type == 'school'"/>
+                <field name="parent_phone" invisible="partner_type != 'student'"/>
+                <field name="parent_email" invisible="partner_type != 'student'"/>
+                <field name="birth_date"/>
+                <field name="user_gender"/>
+                <field name="special_age_category"/>
+                <field name="age_category" invisible="partner_type != 'student'" readonly="special_age_category == False"/>
+            </xpath>
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="is_assign"/>
+                <field name="partner_type"/>
+                <field name="educator_partner_id" readonly="partner_type not in ['school', 'subpartner']"
+                       invisible="partner_type not in ['student','teacher','school','parent','subpartner']"
+                       domain="[('partner_type', '=', 'partner')]"/>
+                <field name="educator_subpartner_id" readonly="partner_type not in ['school']"
+                       invisible="partner_type not in ['student','teacher','school','parent']"
+                       domain="[('partner_type', '=', 'subpartner')]"/>
+                <field name="school_id" invisible="partner_type not in ['student','teacher','parent']"
+                       domain="[('partner_type', '=', 'school')]"/>
+                <field name="parent_selected_school" string="Your Child's School" readonly="1" invisible="partner_type != 'parent'"/>
+                <field name="teacher_id" invisible="partner_type != 'student'"
+                       domain="[('partner_type', '=', 'teacher')]"/>
+                <field name="student_parent_id" invisible="partner_type != 'student'"
+                       domain="[('partner_type', '=', 'parent')]"/>
+                <field name="student_id" invisible="partner_type != 'parent'"
+                       domain="[('partner_type', '=', 'student')]" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
